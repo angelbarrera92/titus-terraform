@@ -25,7 +25,7 @@ curl -s https://8095c452e9473a3fae3ea86a6f2572c2cde0d7b5ec63e84f:@packagecloud.i
 apt-get update
 apt-get install -y openjdk-8-jdk
 # Download and install from my own git repository
-curl -s -o /tmp/titus-server-gateway_0.0.1-1_all.deb https://github.com/angelbarrera92/titus-terraform/blob/master/deb/titus-server-gateway_0.0.1-1_all.deb?raw=true
+curl -L -s -o /tmp/titus-server-gateway_0.0.1-1_all.deb https://github.com/angelbarrera92/titus-terraform/blob/master/deb/titus-server-gateway_0.0.1-1_all.deb?raw=true
 dpkg -i /tmp/titus-server-gateway_0.0.1-1_all.deb
 
 # later we probably want to re-enable the updates
