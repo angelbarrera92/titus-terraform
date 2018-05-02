@@ -56,6 +56,7 @@ echo 'ExecStart=/opt/titus-server-master/bin/titus-server-master -p /opt/titus-s
 
 # later we probably want to re-enable the updates
 systemctl enable titus-server-master
+systemctl start titus-server-master
 systemctl enable apt-daily.service
 systemctl enable apt-daily.timer
 reboot

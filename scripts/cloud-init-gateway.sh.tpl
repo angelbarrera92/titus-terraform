@@ -44,5 +44,7 @@ echo 'ExecStart=/opt/titus-server-gateway/bin/titus-server-gateway -p /opt/titus
 
 # later we probably want to re-enable the updates
 systemctl enable titus-server-gateway
+systemctl start titus-server-gateway
 systemctl enable apt-daily.service
 systemctl enable apt-daily.timer
+reboot
