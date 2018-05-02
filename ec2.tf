@@ -46,11 +46,19 @@ resource "aws_instance" "master" {
   iam_instance_profile   = "${aws_iam_instance_profile.titusmasterInstanceProfile.id}"
 }
 
+data "template_file" "gateway" {
+  template = "${file("${path.module}/scripts/cloud-init-gateway.sh.tpl")}"
+
+  vars {
+    master_ip = "${aws_instance.master.private_ip}"
+  }
+}
+
 resource "aws_instance" "gateway" {
   ami                    = "${data.aws_ami.ubuntu_xenial.id}"
   instance_type          = "t2.micro"
   key_name               = "${aws_key_pair.titus_deployer.key_name}"
-  user_data              = "${file("scripts/cloud-init-gateway.sh")}"
+  user_data              = "${data.template_file.gateway.rendered}"
   vpc_security_group_ids = ["${aws_security_group.titusmaster-mainvpc.id}"]
   subnet_id              = "${aws_subnet.private_subnet_1.id}"
   iam_instance_profile   = "${aws_iam_instance_profile.titusmasterInstanceProfile.id}"

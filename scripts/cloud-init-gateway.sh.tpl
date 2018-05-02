@@ -28,6 +28,21 @@ apt-get install -y openjdk-8-jdk
 curl -L -s -o /tmp/titus-server-gateway_0.0.1-1_all.deb https://github.com/angelbarrera92/titus-terraform/blob/master/deb/titus-server-gateway_0.0.1-1_all.deb?raw=true
 dpkg -i /tmp/titus-server-gateway_0.0.1-1_all.deb
 
+
+echo 'titus.gateway.masterIp=${master_ip}' >> /opt/titus-server-gateway/titusgateway.properties
+echo 'titus.gateway.masterHttpPort=7001' >> /opt/titus-server-gateway/titusgateway.properties
+
+echo '[Unit]' >> /lib/systemd/system/titus-server-gateway.service
+echo 'Description=Titus Gateway' >> /lib/systemd/system/titus-server-gateway.service
+echo '[Service]' >> /lib/systemd/system/titus-server-gateway.service
+echo 'ExecStartPre=/bin/mkdir -p /var/log/titus-server-gateway' >> /lib/systemd/system/titus-server-gateway.service
+echo 'Restart=always' >> /lib/systemd/system/titus-server-gateway.service
+echo 'StartLimitInterval=0' >> /lib/systemd/system/titus-server-gateway.service
+echo 'RestartSec=5' >> /lib/systemd/system/titus-server-gateway.service
+echo 'ExecStart=/opt/titus-server-gateway/bin/titus-server-gateway -p /opt/titus-server-gateway/titusgateway.properties' >> /lib/systemd/system/titus-server-gateway.service
+
+
 # later we probably want to re-enable the updates
+systemctl enable titus-server-gateway
 systemctl enable apt-daily.service
 systemctl enable apt-daily.timer
