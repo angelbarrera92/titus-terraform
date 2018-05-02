@@ -1,5 +1,5 @@
 output "bastion_ip" {
-  value = "${aws_instance.master.public_dns}"
+  value = "${aws_instance.bastion.public_ip}"
 }
 
 output "gateway_ip" {
