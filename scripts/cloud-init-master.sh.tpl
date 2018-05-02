@@ -45,7 +45,7 @@ echo 'titusMaster.job.configuration.defaultSecurityGroups=${default_sg_id}' >> /
 echo 'mesos.titus.executor=/apps/titus-executor/bin/titus-executor' >> /opt/titus-server-master/titusmaster.properties
 
 echo '[Unit]' >> /lib/systemd/system/titus-server-master.service
-echo 'Description=Mesos' >> /lib/systemd/system/titus-server-master.service
+echo 'Description=Titus Master' >> /lib/systemd/system/titus-server-master.service
 echo '[Service]' >> /lib/systemd/system/titus-server-master.service
 echo 'ExecStartPre=/bin/mkdir -p /var/log/titus-server-master' >> /lib/systemd/system/titus-server-master.service
 echo 'Restart=always' >> /lib/systemd/system/titus-server-master.service
