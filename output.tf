@@ -18,7 +18,7 @@ output "default_role_arn" {
   value = "${aws_iam_role.titusappwiths3InstanceProfile.arn}"
 }
 
-output "default_sg_arn" {
+output "default_sg_id" {
   value = "${aws_security_group.titusapp.id}"
 }
 
