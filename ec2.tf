@@ -46,25 +46,27 @@ resource "aws_instance" "gateway" {
   iam_instance_profile   = "${aws_iam_instance_profile.titusmasterInstanceProfile.id}"
 }
 
-
 data "template_file" "titusagent" {
-
   template = "${file("${path.module}/scripts/cloud-init-agent.yml.tpl")}"
 
   vars {
     agent_asg_name = "${var.agent_asg_name}"
-    prereqs_ip = "${aws_instance.prereqs.private_ip}"
+    prereqs_ip     = "${aws_instance.prereqs.private_ip}"
   }
 }
 
 resource "aws_launch_configuration" "titusagent" {
-  name                 = "${var.agent_asg_name}"
+  name_prefix          = "${var.agent_asg_name}"
   image_id             = "${data.aws_ami.ubuntu_xenial.id}"
   instance_type        = "t2.large"
   security_groups      = ["${aws_security_group.titusmaster-mainvpc.id}"]
   key_name             = "${aws_key_pair.titus_deployer.key_name}"
   user_data            = "${data.template_file.titusagent.rendered}"
   iam_instance_profile = "${aws_iam_instance_profile.titusmasterInstanceProfile.id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   root_block_device = [
     {

@@ -201,7 +201,7 @@ runcmd:
     - [mkdir, /var/lib/titus-container-logs]
     - [systemctl, enable, mesos-agent]
     - "echo MESOS_MASTER=zk://${prereqs_ip}:2181/titus/mainvpc/mesos >> /etc/mesos-agent.config"
-    - "echo MESOS_PORT=7101 >> /etc/mesos-agent.config"
+    - "echo MESOS_PORT=5051 >> /etc/mesos-agent.config"
     - "echo MESOS_RECOVER=reconnect >> /etc/mesos-agent.config"
     - "echo MESOS_WORK_DIR=/var/lib/mesos >> /etc/mesos-agent.config"
     - "echo MESOS_STRICT=false >> /etc/mesos-agent.config"
