@@ -27,6 +27,10 @@ curl -s https://8095c452e9473a3fae3ea86a6f2572c2cde0d7b5ec63e84f:@packagecloud.i
 apt-get update
 apt-get install -y openjdk-8-jdk mesos titus-executor titus-vpc-driver
 
+# Download and install from my own git repository
+curl -L -s -o /tmp/titus-server-master_0.0.1-1_all.deb https://github.com/angelbarrera92/titus-terraform/blob/master/deb/titus-server-master_0.0.1-1_all.deb?raw=true
+dpkg -i /tmp/titus-server-master_0.0.1-1_all.deb
+
 # later we probably want to re-enable the updates
 systemctl enable apt-daily.service
 systemctl enable apt-daily.timer

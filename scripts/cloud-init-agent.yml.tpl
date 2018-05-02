@@ -95,26 +95,26 @@ write_files:
                 set -eu -o pipefail
 
                 AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
-                REGION=${AZ::-1}
-                ATTRIB="region:${REGION};zone:${AZ}"
+                REGION=$${AZ::-1}
+                ATTRIB="region:$${REGION};zone:$${AZ}"
 
                 INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
-                ATTRIB="${ATTRIB};id:${INSTANCE_ID}"
+                ATTRIB="$${ATTRIB};id:$${INSTANCE_ID}"
 
                 # Fill this in with your ASG
-                ASG=titusagent
-                ATTRIB="${ATTRIB};asg:${ASG}"
+                ASG=${agent_asg_name}
+                ATTRIB="$${ATTRIB};asg:$${ASG}"
 
                 STACK=mainvpc
-                ATTRIB="${ATTRIB};stack:${STACK}"
+                ATTRIB="$${ATTRIB};stack:$${STACK}"
 
                 INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
-                ATTRIB="${ATTRIB};itype:${INSTANCE_TYPE}"
+                ATTRIB="$${ATTRIB};itype:$${INSTANCE_TYPE}"
 
                 ## Fill this in with the right resource set for your instance type
-                ATTRIB="${ATTRIB};res:ResourceSet-ENIs-3-12" #T2.large https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+                ATTRIB="$${ATTRIB};res:ResourceSet-ENIs-3-12" #T2.large https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
 
-                echo MESOS_ATTRIBUTES=\"${ATTRIB}\"
+                echo MESOS_ATTRIBUTES=\"$${ATTRIB}\"
     - path: /etc/systemd/network/10-ens3.network 
       content: |
                 [Match]
@@ -200,10 +200,10 @@ runcmd:
     - [update-grub]
     - [mkdir, /var/lib/titus-container-logs]
     - [systemctl, enable, mesos-agent]
-    - "echo MESOS_MASTER=zk://30.0.100.126:2181/titus/mainvpc/mesos >> /etc/mesos-agent.config"
+    - "echo MESOS_MASTER=zk://${prereqs_ip}:2181/titus/mainvpc/mesos >> /etc/mesos-agent.config"
     - "echo MESOS_PORT=7101 >> /etc/mesos-agent.config"
     - "echo MESOS_RECOVER=reconnect >> /etc/mesos-agent.config"
     - "echo MESOS_WORK_DIR=/var/lib/mesos >> /etc/mesos-agent.config"
     - "echo MESOS_STRICT=false >> /etc/mesos-agent.config"
-    - "echo 'MESOS_RESOURCES=mem:6400;disk:10000;network:9000' >> /etc/mesos-agent.config"
+    - "echo 'MESOS_RESOURCES=mem:8000;disk:8000;network:9000' >> /etc/mesos-agent.config"
     - "/etc/mesos-attributes.sh >> /etc/mesos-agent.config"
