@@ -87,6 +87,11 @@ write_files:
 
                 [Install]
                 WantedBy=multi-user.target
+    - path: /etc/profile.d/titus_environment.sh
+      permissions: '0755'
+      content: |
+                #!/bin/bash -x
+                export METATRON_ENABLED=false
     - path: /etc/mesos-attributes.sh
       permissions: '0755'
       content: |
