@@ -35,12 +35,9 @@ echo 'titus.gateway.masterHttpPort=7001' >> /opt/titus-server-gateway/titusgatew
 echo '[Unit]' >> /lib/systemd/system/titus-server-gateway.service
 echo 'Description=Titus Gateway' >> /lib/systemd/system/titus-server-gateway.service
 echo '[Service]' >> /lib/systemd/system/titus-server-gateway.service
-echo 'ExecStartPre=/bin/mkdir -p /var/log/titus-server-gateway' >> /lib/systemd/system/titus-server-gateway.service
-echo 'Restart=always' >> /lib/systemd/system/titus-server-gateway.service
-echo 'StartLimitInterval=0' >> /lib/systemd/system/titus-server-gateway.service
-echo 'RestartSec=5' >> /lib/systemd/system/titus-server-gateway.service
 echo 'ExecStart=/opt/titus-server-gateway/bin/titus-server-gateway -p /opt/titus-server-gateway/titusgateway.properties' >> /lib/systemd/system/titus-server-gateway.service
-
+echo '[Install]' >> /lib/systemd/system/titus-server-gateway.service
+echo 'WantedBy=multi-user.target' >> /lib/systemd/system/titus-server-gateway.service
 
 # later we probably want to re-enable the updates
 systemctl enable titus-server-gateway

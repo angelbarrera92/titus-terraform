@@ -47,12 +47,9 @@ echo 'mesos.titus.executor=/apps/titus-executor/bin/titus-executor' >> /opt/titu
 echo '[Unit]' >> /lib/systemd/system/titus-server-master.service
 echo 'Description=Titus Master' >> /lib/systemd/system/titus-server-master.service
 echo '[Service]' >> /lib/systemd/system/titus-server-master.service
-echo 'ExecStartPre=/bin/mkdir -p /var/log/titus-server-master' >> /lib/systemd/system/titus-server-master.service
-echo 'Restart=always' >> /lib/systemd/system/titus-server-master.service
-echo 'StartLimitInterval=0' >> /lib/systemd/system/titus-server-master.service
-echo 'RestartSec=5' >> /lib/systemd/system/titus-server-master.service
 echo 'ExecStart=/opt/titus-server-master/bin/titus-server-master -p /opt/titus-server-master/titusmaster.properties' >> /lib/systemd/system/titus-server-master.service
-
+echo '[Install]' >> /lib/systemd/system/titus-server-master.service
+echo 'WantedBy=multi-user.target' >> /lib/systemd/system/titus-server-master.service
 
 # later we probably want to re-enable the updates
 systemctl enable titus-server-master
