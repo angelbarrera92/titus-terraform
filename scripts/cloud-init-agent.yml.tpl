@@ -212,4 +212,5 @@ runcmd:
     - "echo MESOS_STRICT=false >> /etc/mesos-agent.config"
     - "echo 'MESOS_RESOURCES=mem:8000;disk:8000;network:9000' >> /etc/mesos-agent.config"
     - "/etc/mesos-attributes.sh >> /etc/mesos-agent.config"
+    - "touch /metatron"
     - "gpasswd -a ubuntu docker"
