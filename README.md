@@ -124,7 +124,7 @@ We can check that the service is marked as active. We'll be back to this node so
 Finally, we will check the condition of the slave.
 ```
 $ ssh `aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=titusagent" "Name=instance-state-name,Values=running" | jq -r .Reservations[].Instances[].PrivateIpAddress`
-service mesos-agent status
+ubuntu@ip-30-0-100-140:~$ service mesos-agent status
 ● mesos-agent.service - Mesos
    Loaded: loaded (/lib/systemd/system/mesos-agent.service; enabled; vendor preset: enabled)
    Active: active (running)
