@@ -217,6 +217,7 @@ Let's destroy the infrastructure
 $ terraform destroy --force
 ...
 Destroy complete! Resources: 36 destroyed.
+...
 ```
 
 ## Problems encountered
