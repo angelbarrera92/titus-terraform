@@ -43,15 +43,180 @@ The role ARN that appears on the terraform output is the one with administrator 
 #### Security Groups
 As far as the security groups are concerned, [the netflix documentation](https://netflix.github.io/titus/install/prereqs-amazon/) has been fully followed. It has only been customized to be able to parameterize the reliable IP of the bastion at the entrance of port 22. Also, as the [documentation indicates]((https://netflix.github.io/titus/install/prereqs-amazon/)), the security group called `titusapp` has been customized for the specific use case. In this case you have been given complete freedom from outgoing and only incoming connections from the bastion node using port 22. The security group identifier `titusapp` is displayed on the terraform output.
 
-
-# WIP...
+## Fuck, stop writing and tell me how to execute it.
+As requirements, we need to have an amazon account available with enough permissions to create such a cluster, and have terraform installed on our PCs *(jq is needed also)*.
+Then, we cloned this wonderful repository and initiated terraform:
 ```
-terraform init
-terraform plan -var public_key=/home/angel/.ssh/id_rsa.pub -var trusted_cidr=2.137.30.82/32
-terraform apply -var public_key=/home/angel/.ssh/id_rsa.pub -var trusted_cidr=2.137.30.82/32
+$ git clone https://github.com/angelbarrera92/titus-terraform.git && cd titus-terraform
+$ terraform init
+```
+Now the party begins....
+```bash
+$ terraform plan -var public_key=~/.ssh/id_rsa.pub -var trusted_cidr=`curl -s ifconfig.co`/32
+...
+Plan: 36 to add, 0 to change, 0 to destroy.
+...
+$ terraform apply -auto-approve -var public_key=~/.ssh/id_rsa.pub -var trusted_cidr=`curl -s ifconfig.co`/32
+...
+Apply complete! Resources: 36 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+agent_asg_name = titusagent
+bastion_ip = 34.245.<PRIVATE>
+default_role_arn = arn:aws:iam::<PRIVATE>:role/titusappwiths3InstanceProfile
+default_sg_id = sg-<PRIVATE>
+gateway_ip = 30.0.100.130
+master_ip = 30.0.100.24
+prereqs_ip = 30.0.100.194
+...
+$ aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=titusagent" "Name=instance-state-name,Values=running" | jq -r .Reservations[].Instances[].PrivateIpAddress
+```
+Now you will have all the data to start playing.
+
+### Set up your ssh connection
+We're going to use the bastion as a jump host. This is why we will configure it in our ssh connection configuration file. If you look, all connections to IPs 30.0.* will go against the jump settings.
+
+```bash
+$ cat ~/.ssh/config
+Host 30.0.*
+    User ubuntu
+    ProxyCommand ssh ubuntu@34.245.<PRIVATE> nc %h %p
+```
+*Be careful not to get into conflict with any of your ssh settings.*
+
+### Let's make sure everything's up.
+#### prereqs Machine
+First we must go to the prerequisite machine:
+```
+$ ssh terraform output prereqs_ip
+ubuntu@ip-30-0-100-194:~$ docker ps
+CONTAINER ID        IMAGE                                             COMMAND                  CREATED             STATUS              PORTS                                        NAMES
+758a742b4308        mesosphere/mesos-master:1.0.1-2.0.93.ubuntu1404   "mesos-master mesos-…"   15 seconds ago      Up 14 seconds                                                    mesomaster
+72a3d170f460        jplock/zookeeper:3.4.10                           "/opt/zookeeper/bin/…"   38 seconds ago      Up 38 seconds       2888/tcp, 0.0.0.0:2181->2181/tcp, 3888/tcp   zookeeper
+```
+And we must check that the docker daemon is working and two containers are up, `mesos master` and a `zookeeper`.
+
+#### titus master
+Now we must go to the titus master node and check that the service is alive:
+```
+$ ssh `terraform output master_ip`
+ubuntu@ip-30-0-100-24:~$ service titus-server-master status
+● titus-server-master.service - Titus Master
+   Loaded: loaded (/lib/systemd/system/titus-server-master.service; enabled; vendor preset: enabled)
+   Active: active (running)
+```
+We can check that the service is marked as active
+
+#### titus gateway
+We'll check the status of the api gateway.
+```
+$ ssh `terraform output gateway_ip`
+ubuntu@ip-30-0-100-130:~$ service titus-server-gateway status
+● titus-server-gateway.service - Titus Gateway
+   Loaded: loaded (/lib/systemd/system/titus-server-gateway.service; enabled; vendor preset: enabled)
+   Active: active (running)
+```
+We can check that the service is marked as active. We'll be back to this node soon.
+
+#### titus agent
+Finally, we will check the condition of the slave.
+```
+$ ssh `aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=titusagent" "Name=instance-state-name,Values=running" | jq -r .Reservations[].Instances[].PrivateIpAddress`
+service mesos-agent status
+● mesos-agent.service - Mesos
+   Loaded: loaded (/lib/systemd/system/mesos-agent.service; enabled; vendor preset: enabled)
+   Active: active (running)
 ```
 
+We can check that the service is marked as active. We'll be back to this node soon.
 
+### The game begins
+We get inside the gateway node:
+```
+$ ssh `terraform output gateway_ip`
+```
+And we execute the following request to the api:
+```
+ubuntu@ip-30-0-100-130:~$ curl localhost:7001/api/v3/agent/instanceGroups/titusagent/lifecycle \
+  -X PUT -H "Content-type: application/json" -d \
+  '{"instanceGroupId": "titusagent", "lifecycleState": "Active"}'
+```
+This request indicates that our autoscalling group is ready to receive jobs. we can check the state of it:
+```
+ubuntu@ip-30-0-100-130:~$ curl localhost:7001/api/v3/agent/instanceGroups/titusagent
+{
+  "id": "titusagent",
+  "instanceType": "t2.large",
+  "instanceResources": {
+    "cpu": 0,
+    "gpu": 0,
+    "memoryMB": 0,
+    "diskMB": 0,
+    "networkMbps": 0
+  },
+  "tier": "Flex",
+  "min": 0,
+  "desired": 1,
+  "current": 1,
+  "max": 1,
+  "isLaunchEnabled": false,
+  "isTerminateEnabled": false,
+  "autoScaleRule": {
+    "min": 0,
+    "max": 1000,
+    "minIdleToKeep": 2,
+    "maxIdleToKeep": 5,
+    "coolDownSec": "600",
+    "priority": 100,
+    "shortfallAdjustingFactor": 8
+  },
+  "lifecycleStatus": {
+    "state": "Active",
+    "detail": "",
+    "timestamp": "1525719016939"
+  },
+  "launchTimestamp": "1525718936792",
+  "attributes": {
+  }
+}
+```
+
+Now we'll launch an example job. ***Please replace the <PRIVATE> values with your real values.***
+```
+ubuntu@ip-30-0-100-130:~$ curl localhost:7001/api/v3/jobs \
+  -X POST -H "Content-type: application/json" -d \
+  '{
+    "applicationName": "localtest",
+    "owner": {"teamEmail": "me@me.com"},
+    "container": {
+      "image": {"name": "alpine", "tag": "latest"},
+      "entryPoint": ["/bin/sleep", "1h"],
+      "securityProfile": {"iamRole": "arn:aws:iam::<PRIVATE>:role/titusappwiths3InstanceProfile", "securityGroups": ["sg-<PRIVATE>"]}
+    },
+    "batch": {
+      "size": 1,
+      "runtimeLimitSec": "3600",
+      "retryPolicy":{"delayed": {"delayMs": "1000", "retries": 3}}
+    }
+  }'
+```
+Now we must go to the only slave we have and check that there is a docker container running.
+```
+$ ssh `aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=titusagent" "Name=instance-state-name,Values=running" | jq -r .Reservations[].Instances[].PrivateIpAddress`
+ubuntu@ip-30-0-100-140:~$ docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+ba08bde76fdf        alpine:latest       "/bin/sleep 1h"     57 seconds ago      Up 56 seconds                           57bf28b1-8393-4afb-900e-33e371e92b50
+```
+And effectively, we have a docker container running. And that's all for now. **We have tested the deployment of a job on the Netflix infrastructure, titus.**
+
+### Switching off
+Let's destroy the infrastructure
+```
+$ terraform destroy --force
+...
+Destroy complete! Resources: 36 destroyed.
+```
 
 ## Problems encountered
 During the construction of this proof of concept, several problems have been encountered. Luckily, the titus development team has exposed a [public slack channel](https://titusoss.herokuapp.com/) where I found personalized help ;)
@@ -60,7 +225,7 @@ During the construction of this proof of concept, several problems have been enc
 Once the infrastructure was set up, launching a sample job would cause an error in the logs of the mesos agent:
 
 ```bash
-cat /var/lib/mesos/slaves/64b1f518-f8d6-4f21-8d4f-39360b8f12f2-S0/frameworks/TitusFramework/executors/docker-executor/runs/latest
+$ cat /var/lib/mesos/slaves/64b1f518-f8d6-4f21-8d4f-39360b8f12f2-S0/frameworks/TitusFramework/executors/docker-executor/runs/latest
 Cannot create Titus executor: Failed to initialize Metatron trust store: lstat /metatron: no such file or directory
 ```
 
@@ -75,7 +240,7 @@ Again, when we tried to start a job, we found that it did not start the job. But
 So you must launch that request to the api rest, important, from the titus gateway node. If you have used the default variables of this terraform project, the request will be:
 
 ```bash
-curl localhost:7001/api/v3/agent/instanceGroups/titusagent/lifecycle \
+$ curl localhost:7001/api/v3/agent/instanceGroups/titusagent/lifecycle \
   -X PUT -H "Content-type: application/json" -d \
   '{"instanceGroupId": "titusagent", "lifecycleState": "Active"}'
 ```
@@ -96,7 +261,3 @@ A new problem arises, the examples are written for the API in version 2. But thi
 - https://www.infoq.com/news/2018/04/titus-container-platform
 - https://github.com/Netflix/titus-control-plane
 - https://github.com/Netflix/titus-api-definitions/blob/master/doc/titus-v3-spec.md
-
-
-## TODO
-There are some manual steps, such as upload the master and gateway debian (.deb) files and installing it.
