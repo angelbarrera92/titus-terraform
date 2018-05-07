@@ -71,7 +71,7 @@ master_ip = 30.0.100.24
 prereqs_ip = 30.0.100.194
 ...
 $ aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=titusagent" "Name=instance-state-name,Values=running" | jq -r .Reservations[].Instances[].PrivateIpAddress
-30.0.100.195
+30.0.100.140
 ```
 Now you will have all the data to start playing.
 
