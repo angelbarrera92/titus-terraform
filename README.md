@@ -90,7 +90,7 @@ Host 30.0.*
 #### prereqs Machine
 First we must go to the prerequisite machine:
 ```
-$ ssh terraform output prereqs_ip
+$ ssh `terraform output prereqs_ip`
 ubuntu@ip-30-0-100-194:~$ docker ps
 CONTAINER ID        IMAGE                                             COMMAND                  CREATED             STATUS              PORTS                                        NAMES
 758a742b4308        mesosphere/mesos-master:1.0.1-2.0.93.ubuntu1404   "mesos-master mesos-…"   15 seconds ago      Up 14 seconds                                                    mesomaster
