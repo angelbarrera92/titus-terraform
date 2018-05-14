@@ -117,7 +117,7 @@ write_files:
                 ATTRIB="$${ATTRIB};itype:$${INSTANCE_TYPE}"
 
                 ## Fill this in with the right resource set for your instance type
-                ATTRIB="$${ATTRIB};res:ResourceSet-ENIs-3-12" #T2.large https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
+                ATTRIB="$${ATTRIB};res:ResourceSet-ENIs-2-10" #m4.large https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
 
                 echo MESOS_ATTRIBUTES=\"$${ATTRIB}\"
     - path: /etc/systemd/network/10-ens3.network 

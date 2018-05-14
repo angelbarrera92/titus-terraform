@@ -76,7 +76,7 @@ data "template_file" "titusagent" {
 resource "aws_launch_configuration" "titusagent" {
   name_prefix          = "${var.agent_asg_name}"
   image_id             = "${data.aws_ami.ubuntu_xenial.id}"
-  instance_type        = "t2.large"
+  instance_type        = "m4.large"
   security_groups      = ["${aws_security_group.titusmaster-mainvpc.id}"]
   key_name             = "${aws_key_pair.titus_deployer.key_name}"
   user_data            = "${data.template_file.titusagent.rendered}"
