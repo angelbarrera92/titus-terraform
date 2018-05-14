@@ -60,6 +60,16 @@ resource "aws_security_group_rule" "titusapp_ssh" {
   security_group_id = "${aws_security_group.titusapp.id}"
 }
 
+resource "aws_security_group_rule" "titusapp_http" {
+  type                     = "ingress"
+  from_port                = 80
+  to_port                  = 80
+  protocol                 = "tcp"
+  source_security_group_id = "${aws_security_group.titusbastion.id}"
+
+  security_group_id = "${aws_security_group.titusapp.id}"
+}
+
 resource "aws_security_group" "titusmaster-mainvpc" {
   name        = "titusmaster-mainvpc"
   description = "titusmaster-mainvpc"
