@@ -42,7 +42,7 @@ echo 'titus.agent.fullCacheRefreshIntervalMs=10000' >> /opt/titus-server-master/
 echo 'titus.agent.agentServerGroupPattern=.*' >> /opt/titus-server-master/titusmaster.properties
 echo 'titusMaster.job.configuration.defaultIamRole=${default_role_arn}' >> /opt/titus-server-master/titusmaster.properties
 echo 'titusMaster.job.configuration.defaultSecurityGroups=${default_sg_id}' >> /opt/titus-server-master/titusmaster.properties
-echo 'mesos.titus.executor=/apps/titus-executor/bin/titus-executor' >> /opt/titus-server-master/titusmaster.properties
+echo 'mesos.titus.executor=/apps/titus-executor/bin/run' >> /opt/titus-server-master/titusmaster.properties
 
 echo '[Unit]' >> /lib/systemd/system/titus-server-master.service
 echo 'Description=Titus Master' >> /lib/systemd/system/titus-server-master.service
