@@ -116,6 +116,9 @@ write_files:
                 INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type)
                 ATTRIB="$${ATTRIB};itype:$${INSTANCE_TYPE}"
 
+                PORTS=[7150-7200]
+                ATTRIB="$${ATTRIB};ports:$${PORTS}"
+
                 ## Fill this in with the right resource set for your instance type
                 ATTRIB="$${ATTRIB};res:ResourceSet-ENIs-2-10" #m4.large https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html
 
