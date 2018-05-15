@@ -342,7 +342,7 @@ ubuntu@ip-30-0-100-140:~$ docker ps
 CONTAINER ID        IMAGE                COMMAND             CREATED             STATUS              PORTS               NAMES
 09da68238ce0        tutum/nginx:latest   "/usr/sbin/nginx"   24 minutes ago      Up 24 minutes                           8ad0dccc-657f-419a-b67e-33f886aee567
 ubuntu@ip-30-0-100-140:~$ docker exec -it 09da68238ce0 /bin/bash
-root@8ad0dccc-657f-419a-b67e-33f886aee567:/# apt-get update && apt-get install curl
+root@8ad0dccc-657f-419a-b67e-33f886aee567:/# apt-get update && apt-get install -y curl
 root@8ad0dccc-657f-419a-b67e-33f886aee567:/# curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 root@8ad0dccc-657f-419a-b67e-33f886aee567:/# python3 get-pip.py
 root@8ad0dccc-657f-419a-b67e-33f886aee567:/# pip install awscli
