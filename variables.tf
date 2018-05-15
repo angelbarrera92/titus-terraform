@@ -9,5 +9,10 @@ variable "trusted_cidr" {
 
 variable "agent_asg_name" {
   description = "titusagent ASG name"
-   default =   "titusagent"
+  default     = "titusagent"
+}
+
+variable "s3_log_bucket_name" {
+  description = "Titus S3 Bucket Log"
+  default     = "titus-log-bucket-terraform-example"
 }
