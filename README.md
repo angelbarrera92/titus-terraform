@@ -31,19 +31,19 @@ The infrastructure shall contain the following components:
 - **Titus prereqs**: This machine contains the requirements set out in [the titus documentation](https://netflix.github.io/titus/install/prereqs/). In this machine are deployed the service of Mesos (master) and Zookeeper (1 single node). To orient the deployment to an environment closer to production, a zookeeper cluster should be created in 3 different availability zones of at least 3 nodes. You must also separate the mesos node and try to deploy it in high availability.
 - **Titus Master**: This machine deploys the debian package relative to the titus master. To facilitate the deployment of this infrastructure, the git project containing the titus master was compiled locally and the resulting debian package is uploaded to this same repository under the [deb folder](./deb). Compiled tag: [v0.1.0-rc.57](https://github.com/Netflix/titus-control-plane/tree/v0.1.0-rc.57). [The instructions in the titus manual](https://netflix.github.io/titus/install/master/) have been followed to lift the master. Although to run the binary I use systemd instead of launching the binary by hand.
 - **Titus Gateway**: This machine deploys the debian package relative to the titus gateway. To facilitate the deployment of this infrastructure, the git project containing the titus gateway was compiled locally  and the resulting debian package is uploaded to this same repository under the [deb folder](./deb). Compiled tag: [v0.1.0-rc.57](https://github.com/Netflix/titus-control-plane/tree/v0.1.0-rc.57). [The instructions in the titus manual](https://netflix.github.io/titus/install/master/) have been followed to lift the gateway. Although to run the binary I use systemd instead of launching the binary by hand.
-- **Titus Agent**: Titus agents or slaves are EC2 machines that must be deployed in an autoscalling group. [The instructions in the titus manual](https://netflix.github.io/titus/install/agent/) have been followed to lift the agent. In the documentation it is described that the file `/etc/mesos-attributes.sh` must be modified to configure it with the data of the machine resources that have been chosen. In this proof of concept we have chosen ~~T2.large~~ m4.large instances. To find out how many ENIs and EIPs can be associated with the type of machine selected, you must visit the official [AWS documentation.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html). In this example: `ResourceSet-ENIs-3-12` *(3 ENIS and 12 EIPs)*.
+- **Titus Agent**: Titus agents or slaves are EC2 machines that must be deployed in an autoscalling group. [The instructions in the titus manual](https://netflix.github.io/titus/install/agent/) have been followed to lift the agent. In the documentation it is described that the file `/etc/mesos-attributes.sh` must be modified to configure it with the data of the machine resources that have been chosen. In this proof of concept we have chosen ~~T2.large~~ m4.large instances. To find out how many ENIs and EIPs can be associated with the type of machine selected, you must visit the official [AWS documentation.](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html). In this example: `ResourceSet-ENIs-2-10` *(2 ENIS and 10 EIPs)*.
 
 #### IAM
 Following the netflix tutorial, three IAM roles are created. one of them will be for the instances that run containers and the other two will be roles that the containers will assume.
 The role of the instances, in this proof of concept, has administrator permission *(not suitable for production)*. The other two roles (`titusappwiths3InstanceProfile` and `titusappnos3InstanceProfile`) have administrator permissions on S3 (`titusappwiths3InstanceProfile`) and the other on EC2 (`titusappnos3InstanceProfile`).
-***This feature has not been tested in this proof of concept.***
+~~This feature has not been tested in this proof of concept.~~
 
 The role ARN that appears on the terraform output is the one with administrator privileges over S3 (`titusappwiths3InstanceProfile`).
 
 #### S3 Bucket
 One of the failures suffered during the testing of this orchestrator was the absence of an S3 bucket. So a bucket is created that is supposed to be used for log storage.
 
-**Please, attention, be careful**. The names of the buckets are unique globally, so it is strongly recommended to change the value of the variable (`s3_log_bucket_nam`). By default the value is: `titus-log-bucket-terraform-example`.
+**Please, attention, be careful**. The names of the buckets are unique globally, so it is strongly recommended to change the value of the variable (`s3_log_bucket_name`). The default value is: `titus-log-bucket-terraform-example`.
 
 #### Security Groups
 As far as the security groups are concerned, [the netflix documentation](https://netflix.github.io/titus/install/prereqs-amazon/) has been fully followed. It has only been customized to be able to parameterize the reliable IP of the bastion at the entrance of port 22. Also, as the [documentation indicates]((https://netflix.github.io/titus/install/prereqs-amazon/)), the security group called `titusapp` has been customized for the specific use case. In this case you have been given complete freedom from outgoing and only incoming connections from the bastion node using port 22 and 80. The security group identifier `titusapp` is displayed on the terraform output.
@@ -59,11 +59,11 @@ Now the party begins....
 ```bash
 $ terraform plan -var public_key=~/.ssh/id_rsa.pub -var trusted_cidr=`curl -s ifconfig.co`/32
 ...
-Plan: 36 to add, 0 to change, 0 to destroy.
+Plan: 38 to add, 0 to change, 0 to destroy.
 ...
 $ terraform apply -auto-approve -var public_key=~/.ssh/id_rsa.pub -var trusted_cidr=`curl -s ifconfig.co`/32
 ...
-Apply complete! Resources: 36 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 38 added, 0 changed, 0 destroyed.
 
 Outputs:
 
@@ -390,7 +390,7 @@ Let's destroy the infrastructure
 ```
 $ terraform destroy --force
 ...
-Destroy complete! Resources: 36 destroyed.
+Destroy complete! Resources: 38 destroyed.
 ...
 ```
 
