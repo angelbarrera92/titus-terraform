@@ -92,6 +92,10 @@ write_files:
       content: |
                 #!/bin/bash -x
                 export METATRON_ENABLED=false
+                export TITUS_LOG_BUCKET=${titus_log_bucket}
+                export TITUS_REGISTRY=docker.io
+                export NETFLIX_ACCOUNT=no-one
+                export EC2_LOCAL_IPV4=$(hostname --ip-address)
     - path: /etc/mesos-attributes.sh
       permissions: '0755'
       content: |

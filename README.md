@@ -254,6 +254,153 @@ Well, once the group of instances of the mesos agents is activated, we proceed t
 
 A new problem arises, the examples are written for the API in version 2. But this version of the API is disabled, with version 3 being the active version. *(data provided by netflix engineers @ [slack](https://titusoss.herokuapp.com/))*. So again, we must go to [other documentation](https://github.com/Netflix/titus-control-plane) to look for a valid example *(api version 3)*.
 
+### Services examples
+In the documentation (neither in the official titus nor in the netflix repositories) there is no example of service. Service understood as a program or application that exposes a port to which other services or end customers can connect. Example, nginx server. Luckily the titus team through their slack channel have been patient with me and have been helping me.
+
+They gave me an example they use to debug. But this example does not expound any "port".
+```json
+{
+  "owner": {
+    "teamEmail": "me@example.com"
+  },
+  "applicationName": "myServiceApp",
+  "capacityGroup": "myServiceApp",
+  "jobGroupInfo": {
+    "stack": "myStack",
+    "detail": "detail",
+    "sequence": "002"
+  },
+  "attributes": {
+    "key1": "value1"
+  },
+  "container": {
+    "resources": {
+      "cpu": 1.0,
+      "memoryMB": 512,
+      "diskMB": 10000,
+      "networkMbps": 128,
+      "allocateIP": true
+    },
+    "securityProfile": {
+      "securityGroups": [
+        "sg"
+      ],
+      "iamRole": "myapp-role"
+    },
+    "image": {
+      "name": "alpine",
+      "tag": "latest"
+    },
+    "entryPoint": [
+      "sleep",
+      "99999"
+    ],
+    "env": {
+      "MY_ENV": "myEnv"
+    },
+    "softConstraints": {
+      "constraints": {
+        "UniqueHost": "true",
+        "ZoneBalance": "true"
+      }
+    },
+    "hardConstraints": {}
+  },
+  "service": {
+    "capacity": {
+      "min": 1,
+      "max": 1,
+      "desired": 1
+    },
+    "enabled": true,
+    "retryPolicy": {
+      "delayed": {
+        "delayMs": "1000"
+      }
+    },
+    "migrationPolicy": {
+      "selfManaged": {}
+    }
+  }
+}
+```
+I wanted to try an example a little closer to a "real" environment. Deploy a nginx. So I adapted his example for a nginx.
+```json
+{
+  "owner": {
+    "teamEmail": "me@example.com"
+  },
+  "applicationName": "myServiceApp",
+  "capacityGroup": "myServiceApp",
+  "jobGroupInfo": {
+    "stack": "myStack",
+    "detail": "detail",
+    "sequence": "002"
+  },
+  "attributes": {
+    "key1": "value1"
+  },
+  "container": {
+    "resources": {
+      "cpu": 1.0,
+      "memoryMB": 256,
+      "diskMB": 500,
+      "networkMbps": 128,
+      "allocateIP": true
+    },
+    "securityProfile": {
+      "securityGroups": [
+        "sg-<PRIVATE>"
+      ],
+      "iamRole": "arn:aws:iam::<AWS_ID>:role/titusappwiths3InstanceProfile"
+    },
+    "image": {
+      "name": "tutum/nginx",
+      "tag": "latest"
+    },
+    "env": {
+      "MY_ENV": "myEnv"
+    },
+    "softConstraints": {
+      "constraints": {
+        "UniqueHost": "true",
+        "ZoneBalance": "true"
+      }
+    },
+    "hardConstraints": {}
+  },
+  "service": {
+    "capacity": {
+      "min": 1,
+      "max": 1,
+      "desired": 1
+    },
+    "enabled": true,
+    "retryPolicy": {
+      "delayed": {
+        "delayMs": "1000"
+      }
+    },
+    "migrationPolicy": {
+      "selfManaged": {}
+    }
+  }
+}
+```
+In this case, I used a [tutum image containing a simple nginx](https://hub.docker.com/r/tutum/nginx/).
+
+### VPC Driver does not support t2 instances
+Once I get the example to deploy (service), when I run it I realize that titus does not configure a new network interface to the node where the nginx service is running. On the other hand, you can see that the nginx docker container is alive by exposing port 80.
+
+After several steps of debugging and already knowing a little more about the titus architecture, I went to the directory where the binary files of titus are found. Then I run the binary that was supposed to handle all the network configuration.
+
+```bash
+$ sudo /apps/titus-executor/bin/titus-vpc-tool genconf
+panic: Unknown family: t2
+```
+
+I reported this error in the slack channel and they immediately told me that the t2 intancias were not supported. They showed me where [the map of instances supported by titus is](https://github.com/Netflix/titus-executor/blob/master/vpc/limits.go). So the exclaves of titus must be instances m4, m5.... but not t2.
+
 ## Documentation to have on the radar
 - https://queue.acm.org/detail.cfm?id=3158370
 - https://medium.com/netflix-techblog/titus-the-netflix-container-management-platform-is-now-open-source-f868c9fb5436

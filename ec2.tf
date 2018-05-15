@@ -68,8 +68,9 @@ data "template_file" "titusagent" {
   template = "${file("${path.module}/scripts/cloud-init-agent.yml.tpl")}"
 
   vars {
-    agent_asg_name = "${var.agent_asg_name}"
-    prereqs_ip     = "${aws_instance.prereqs.private_ip}"
+    titus_log_bucket = "${aws_s3_bucket.titus_log_bucket.bucket}"
+    agent_asg_name   = "${var.agent_asg_name}"
+    prereqs_ip       = "${aws_instance.prereqs.private_ip}"
   }
 }
 
