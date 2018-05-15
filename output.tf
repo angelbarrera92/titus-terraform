@@ -25,3 +25,7 @@ output "default_sg_id" {
 output "agent_asg_name" {
   value = "${aws_autoscaling_group.titusagent.name}"
 }
+
+output "vpc_id" {
+  value = "${aws_vpc.titus.id}"
+}
